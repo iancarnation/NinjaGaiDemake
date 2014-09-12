@@ -25,6 +25,8 @@ namespace NinjaGaiDemake
         public float Top { get { return this.Position.Y; } }
         public float Bottom { get { return this.Position.Y + Height; } }
 
+        public bool isLadder;
+
         // debug rectangle to draw
         public Rectangle DebugRect;
         public Color DebugRectColor;
@@ -81,6 +83,8 @@ namespace NinjaGaiDemake
             this.Width = width;
             this.Height = height;
 
+            this.isLadder = false;
+
             DebugRect = new Rectangle((int)Position.X, (int)Position.Y, (int)width, (int)height);
             DebugRectColor = Color.Red;
         }
@@ -90,6 +94,8 @@ namespace NinjaGaiDemake
             this.Position = position;
             this.Width = width;
             this.Height = height;
+
+            this.isLadder = false;
 
             DebugRect = new Rectangle((int)Position.X, (int)Position.Y, (int)width, (int)height);
             DebugRectColor = Color.Red;

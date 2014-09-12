@@ -119,7 +119,7 @@ namespace NinjaGaiDemake
         private bool isClimbing;
         private bool isClimbingUp;
         private bool isClimbingDown;
-
+        private bool isOnLadder;
 
         // Power States
 
@@ -235,14 +235,9 @@ namespace NinjaGaiDemake
         {
             // Sounds
 
-
-
-
-
             GetInput(keyboardState, gamePadState);
 
             ApplyPhysics(gameTime);
-
 
             // check if alive and on ground -> play run/idle animation
 
@@ -296,7 +291,8 @@ namespace NinjaGaiDemake
 
                 if (isWallGrabbingRight)
                     canWallJumpLeft = true;
-                    
+                //else
+                    //canWallJumpLeft = false;
             }
             else if (gamePadState.IsButtonDown(Buttons.DPadRight) ||
                     keyboardState.IsKeyDown(Keys.Right) ||
@@ -314,7 +310,7 @@ namespace NinjaGaiDemake
                 keyboardState.IsKeyDown(Keys.Up) ||
                 keyboardState.IsKeyDown(Keys.W))
             {
-                if (isWallGrabbing)
+                if (isWallGrabbing && isOnLadder)
                 { 
                     Ymovement = -1.0f;
                     isClimbing = true;
@@ -326,7 +322,7 @@ namespace NinjaGaiDemake
                     keyboardState.IsKeyDown(Keys.Left) ||
                     keyboardState.IsKeyDown(Keys.S))
             {
-                if (isWallGrabbing)
+                if (isWallGrabbing && isOnLadder)
                 {
                     Ymovement = 1.0f;
                     isClimbing = true;
@@ -380,9 +376,12 @@ namespace NinjaGaiDemake
 
             if (!isWallGrabbing)
                 velocity.Y = MathHelper.Clamp(velocity.Y + GravityAcceleration * elapsed, -MaxFallSpeed, MaxFallSpeed);
-
+            else
+                velocity.Y = 0f;
             velocity.Y = DoJump(velocity.Y, gameTime);
 
+            
+          
             // JET FART
             if (isJetFarting && this.fuel > 0)
             {
@@ -423,7 +422,7 @@ namespace NinjaGaiDemake
             // If the collision stopped us from moving, reset velocity to zero
             if (Position.X == previousPosition.X)
                 velocity.X = 0f;
-            if (Position.Y == previousPosition.Y && !isJetFarting)
+            if (Position.Y == previousPosition.Y)
                 velocity.Y = 0f;
         }
 
@@ -450,19 +449,25 @@ namespace NinjaGaiDemake
             if (isJumping)
             {
                 // Begin or continue a jump
-                if ((!wasJumping && IsOnGround) || jumpTime > 0.0f || (!wasJumping && isWallGrabbing))
+                if ((!wasJumping && IsOnGround) || jumpTime > 0.0f || (isWallGrabbing && (canWallJumpLeft || canWallJumpRight)))
                 {
                     //if (jumpTime == 0.0f)
                     // play jump sound
-                    // ninja - toggle wall grabbing state
-                    if (isWallGrabbing)
-                        isWallGrabbing = !isWallGrabbing;
-                    if (isWallGrabbingLeft)
-                        isWallGrabbingLeft = !isWallGrabbingLeft;
-                    if (isWallGrabbingRight)
-                        isWallGrabbingRight = !isWallGrabbingRight;
-                    if (isClimbing)
-                        isClimbing = !isClimbing;
+                    // ninja - deactivate wall grabbing state
+                    if (canWallJumpLeft || canWallJumpRight)
+                    {
+                        if (isWallGrabbing)
+                            isWallGrabbing = false;
+                        if (isWallGrabbingLeft)
+                            isWallGrabbingLeft = false;
+                        if (isWallGrabbingRight)
+                            isWallGrabbingRight = false;
+                        if (isClimbing)
+                            isClimbing = false;
+
+                        canWallJumpLeft = false;
+                        canWallJumpRight = false;
+                    }
 
                     jumpTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
                     // play jump animation
@@ -590,6 +595,8 @@ namespace NinjaGaiDemake
                 // ninja - if in midair and collides on side, grab wall
                 if (this.isOnGround == false)
                 {
+                    if (solidRect.isLadder)
+                        this.isOnLadder = true;
                     this.isWallGrabbing = true;
                     this.isWallGrabbingLeft = true;
                     //GravityAcceleration
@@ -611,10 +618,12 @@ namespace NinjaGaiDemake
                 // ninja - if in midair and collides on side, grab wall
                 if (this.isOnGround == false)
                 {
+                    if (solidRect.isLadder)
+                        this.isOnLadder = true;
                     this.isWallGrabbing = true;
                     this.isWallGrabbingRight = true;
                     //GravityAcceleration
-                    this.velocity.Y = 0f;
+                    this.velocity.Y = 0;
                 }
             }
             else
