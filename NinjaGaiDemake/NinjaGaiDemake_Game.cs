@@ -28,7 +28,9 @@ namespace NinjaGaiDemake
         bool debugBoxesOn, editorModeOn;
 
         // Represents player
-        Player player;
+        public Player player;
+        Weapon playerSword;
+        Camera camera;
         //Player enemy;
 
         // Sounds
@@ -37,6 +39,7 @@ namespace NinjaGaiDemake
 
 
         // Environment stuff
+        //public Layer[] layers;
 
         // Screen iterator
         public int currentScreen;
@@ -95,6 +98,9 @@ namespace NinjaGaiDemake
 
             // Initialize the player class
             player = new Player();
+            playerSword = new Weapon();
+            camera = new Camera();
+
             //enemy = new Player();
 
 
@@ -105,6 +111,7 @@ namespace NinjaGaiDemake
 
             collisionSolids.Add(floor);
             collisionSolids.Add(tower1);
+
 
             debugBoxesOn = false;
             editorModeOn = false;
@@ -139,7 +146,8 @@ namespace NinjaGaiDemake
             Vector2 playerPosition = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X + 20f, GraphicsDevice.Viewport.TitleSafeArea.Y + GraphicsDevice.Viewport.TitleSafeArea.Height / 2);
             // Vector2 enemyPosition = new Vector2(500, 100);
 
-            player.Initialize(this, Content.Load<Texture2D>("Graphics\\ninja_stand"), playerPosition);
+            playerSword.Initialize(Content.Load<Texture2D>("Graphics\\ninja_sword"), playerPosition);
+            player.Initialize(this, Content.Load<Texture2D>("Graphics\\ninja_stand"), playerPosition, playerSword);
             //enemy.Initialize(Content.Load<Texture2D>("Graphics\\cherub-flying-arms"), enemyPosition);
 
 
@@ -178,29 +186,43 @@ namespace NinjaGaiDemake
 
             screens[0].enemies.Add(new Enemy());
             screens[0].enemies[0].Initialize(Content.Load<Texture2D>("Graphics\\tempCherub"), new Vector2(700, 570));
-            screens[0].enemies[0].SetPath(new Vector2(600, 570), new Vector2(900, 570), new Vector2(700, 570));
+            screens[0].enemies[0].SetPath(new Vector2(600, 570), new Vector2(900, 570), new Vector2(700, 520));
 
             //Initialize PowerUps
             screens[0].powerups.Add(new Powerup(Content.Load<Texture2D>("Graphics\\powerUp"), new Vector2(600, 525), 100, 100, true));
 
 
-            // SCREEN 2
-            screens.Add(new Screen());
+            //// SCREEN 2
+            //screens.Add(new Screen());
 
-            screens[1].objs.Add(new EnvironmentSolid());
-            screens[1].objs[0].Initialize(Content.Load<Texture2D>("Graphics\\tower"), new Vector2(600, GraphicsDevice.Viewport.TitleSafeArea.Height - 450));
-            screens[1].objs.Add(new EnvironmentSolid());
-            screens[1].objs[1].Initialize(Content.Load<Texture2D>("Graphics\\floor"), new Vector2(0, GraphicsDevice.Viewport.TitleSafeArea.Height - 100));
+            screens[0].objs.Add(new EnvironmentSolid());
+            screens[0].objs[2].Initialize(Content.Load<Texture2D>("Graphics\\tower"), new Vector2(900, GraphicsDevice.Viewport.TitleSafeArea.Height - 450));
 
-            screens[1].enemies.Add(new Enemy());
-            screens[1].enemies[0].Initialize(Content.Load<Texture2D>("Graphics\\tempCherub"), new Vector2(600, 450));
-            screens[1].enemies[0].SetPath(new Vector2(600, 570), new Vector2(750, 570), new Vector2(600, 220));
+            screens[0].objs.Add(new EnvironmentSolid());
+            screens[0].objs[3].Initialize(Content.Load<Texture2D>("Graphics\\tower"), new Vector2(1700, GraphicsDevice.Viewport.TitleSafeArea.Height - 450));
 
-            screens[1].enemies.Add(new Enemy());
-            screens[1].enemies[1].Initialize(Content.Load<Texture2D>("Graphics\\tempCherub"), new Vector2(200, 570));
-            screens[1].enemies[1].SetPath(new Vector2(200, 570), new Vector2(300, 570), new Vector2(800, 570));
+            screens[0].objs.Add(new EnvironmentSolid());
+            screens[0].objs[4].Initialize(Content.Load<Texture2D>("Graphics\\tower"), new Vector2(2700, GraphicsDevice.Viewport.TitleSafeArea.Height - 450));
 
-            screens[1].powerups.Add(new Powerup(Content.Load<Texture2D>("Graphics\\powerUp"), new Vector2(400, 525), 100, 100, true));
+            screens[0].objs.Add(new EnvironmentSolid());
+            screens[0].objs[5].Initialize(Content.Load<Texture2D>("Graphics\\tower"), new Vector2(2900, GraphicsDevice.Viewport.TitleSafeArea.Height - 450));
+
+            screens[0].objs.Add(new EnvironmentSolid());
+            screens[0].objs[6].Initialize(Content.Load<Texture2D>("Graphics\\tower"), new Vector2(3100, GraphicsDevice.Viewport.TitleSafeArea.Height - 450));
+
+            screens[0].objs.Add(new EnvironmentSolid());
+            screens[0].objs[7].Initialize(Content.Load<Texture2D>("Graphics\\tower"), new Vector2(3500, GraphicsDevice.Viewport.TitleSafeArea.Height - 450));
+          
+
+            screens[0].enemies.Add(new Enemy());
+            screens[0].enemies[1].Initialize(Content.Load<Texture2D>("Graphics\\tempCherub"), new Vector2(600, 450));
+            screens[0].enemies[1].SetPath(new Vector2(600, 570), new Vector2(750, 570), new Vector2(600, 220));
+
+            screens[0].enemies.Add(new Enemy());
+            screens[0].enemies[2].Initialize(Content.Load<Texture2D>("Graphics\\tempCherub"), new Vector2(200, 570));
+            screens[0].enemies[2].SetPath(new Vector2(200, 570), new Vector2(300, 570), new Vector2(800, 520));
+
+            screens[0].powerups.Add(new Powerup(Content.Load<Texture2D>("Graphics\\powerUp"), new Vector2(400, 525), 100, 100, true));
 
 
 
@@ -214,7 +236,7 @@ namespace NinjaGaiDemake
             //Vector2 tower1Position = new Vector2(400, GraphicsDevice.Viewport.TitleSafeArea.Height - 450);
             //tower1.Initialize(Content.Load<Texture2D>("Graphics\\tower"), tower1Position);
 
-            Console.WriteLine("Loadeddddd");
+            //Console.WriteLine("Loadeddddd");
 
             //flatulina = Content.Load<Texture2D>("Player/cherub-flying-arms");
         }
@@ -241,6 +263,9 @@ namespace NinjaGaiDemake
 
             // Update the player
             player.Update(gameTime, currentKeyboardState, currentGamePadState);
+
+            // update camera
+            camera.Update(player.Position);
 
             // Save the previous state of the keyboard and game pad so we can determine single key/button presses
             previousGamePadState = currentGamePadState;
@@ -271,7 +296,7 @@ namespace NinjaGaiDemake
             // update enemies
             for (int i = 0; i < screens[currentScreen].enemies.Count; i++)
             {
-                screens[currentScreen].enemies[i].Update(deltaTime);
+                screens[currentScreen].enemies[i].Update(this, deltaTime);
             }
 
             // Sound
@@ -293,7 +318,8 @@ namespace NinjaGaiDemake
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
-            _spriteBatch.Begin();
+            _spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, 
+                null, null, null, null, camera.ViewMatrix);
 
             // draw mouse coordinates
             //currentMouseState = Mouse.GetState();
@@ -308,6 +334,8 @@ namespace NinjaGaiDemake
 
             // Draw Player
             player.Draw(_spriteBatch);
+            if (player.sword.isActive)
+                player.sword.Draw(_spriteBatch);
 
             // HUD
             _spriteBatch.Draw(pixel, player.fuelFill, Color.Red);
@@ -321,12 +349,14 @@ namespace NinjaGaiDemake
                 DrawBorder(player.CollisionBottom.DebugRect, 1, player.CollisionBottom.DebugRectColor);
                 DrawBorder(player.CollisionLeft.DebugRect, 1, player.CollisionLeft.DebugRectColor);
                 DrawBorder(player.CollisionRight.DebugRect, 1, player.CollisionRight.DebugRectColor);
+                DrawBorder(player.sword.BoundingBox.DebugRect, 1, player.sword.BoundingBox.DebugRectColor);
             }
 
             //enemy.Draw(_spriteBatch);
             for (int i = 0; i < screens[currentScreen].enemies.Count; i++)
             {
-                screens[currentScreen].enemies[i].Draw(_spriteBatch);
+                if (screens[currentScreen].enemies[i].isAlive)
+                    screens[currentScreen].enemies[i].Draw(_spriteBatch);
             }
 
             // draw powerups
@@ -350,7 +380,7 @@ namespace NinjaGaiDemake
             {
                 _spriteBatch.Draw(introScreen, new Rectangle(0, 0, 1024, 728), Color.White);
             }
-            else if (player.Position.X > 900 && currentScreen == 1)
+            else if (player.Position.X > 4700 && currentScreen == 1)
             {
                 _spriteBatch.Draw(winScreen, new Rectangle(0, 0, 1024, 728), Color.White);
             }

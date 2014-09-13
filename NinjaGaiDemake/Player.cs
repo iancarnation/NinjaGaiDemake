@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace NinjaGaiDemake
 {
-    class Player
+    public class Player
     {
         public bool playing;
         // temp
@@ -87,6 +87,10 @@ namespace NinjaGaiDemake
         private const Buttons JumpButton = Buttons.A;
         private const Buttons JetButton = Buttons.X;
 
+        // weapons
+        public Weapon sword;
+        //public Weapon[] special;
+
         // >>>>>>>>> Player States <<<<<<<<<<<<<<<<<
 
         public bool IsAlive;
@@ -123,11 +127,15 @@ namespace NinjaGaiDemake
 
         // Power States
 
-        // Ninja Special Item
-        private bool isUsingSpecial;
+        // Ninja Weapons
+        public bool isUsingSword;
+        public bool isUsingSpecial;
 
         // Jet Fart
         private bool isJetFarting;
+
+        // recoil after enemy hit
+        public bool isRecoiling;
 
 
 
@@ -140,7 +148,7 @@ namespace NinjaGaiDemake
         // Specific collision areas for regions of player
         public BoundingRect CollisionTop, CollisionBottom, CollisionLeft, CollisionRight;
 
-        public float thirdOfWidth, halfOfWidth, quarterOfHeight, halfOfHeight;
+        public float thirdOfWidth, halfOfWidth, quarterOfHeight, thirdOfHeight, halfOfHeight;
 
         // >>>>>>>>>>>>>>>>>>>> Input <<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -161,13 +169,14 @@ namespace NinjaGaiDemake
         //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
-        public void Initialize(NinjaGaiDemake_Game game, Texture2D a_texture, Vector2 a_position)
+        public void Initialize(NinjaGaiDemake_Game game, Texture2D a_texture, Vector2 a_position, Weapon a_sword)
         {
             // temp
             color = Color.White;
             scale = 0.4f;
 
             IsAlive = true;
+            health = 15;
 
             this.game = game;
 
@@ -187,6 +196,7 @@ namespace NinjaGaiDemake
             thirdOfWidth = Width / 3f;
             halfOfWidth = Width / 2f;
             quarterOfHeight = Height / 4f;
+            thirdOfHeight = Height / 3f;
             halfOfHeight = Height / 2f;
 
             // set smaller collision areas
@@ -205,6 +215,11 @@ namespace NinjaGaiDemake
 
             fuelOutline = new Rectangle(8, 64, 201, 20);
             fuelFill = new Rectangle(9, 64, fuelFill.X + (fuel * 25), 19);
+
+            // weapons
+            sword = a_sword;
+            isUsingSword = false;
+
 
             // sound effects
            // jetFart = game.Content.Load<SoundEffect>("Sound\\Fart");
@@ -252,18 +267,23 @@ namespace NinjaGaiDemake
             this.fuelFill.Width = this.fuel * 2;
 
             UpdateBoundingBoxes();
+            UpdateWeapons();
 
             // initial screen switching logic
             if (this.position.X > game.GraphicsDevice.Viewport.Width - this.halfOfWidth && game.currentScreen < game.screens.Count - 1)
             {
-                this.position.X = this.halfOfWidth;
+                //this.position.X = this.halfOfWidth;
                 game.currentScreen++;
             }
             else if (this.position.X < 0 - this.halfOfWidth && game.currentScreen > 0)
             {
-                this.position.X = game.GraphicsDevice.Viewport.Width - this.halfOfWidth;
+                //this.position.X = game.GraphicsDevice.Viewport.Width - this.halfOfWidth;
                 game.currentScreen--;
             }
+
+            // check health
+            if (health == 0)
+                IsAlive = false;
 
         }
 
@@ -338,6 +358,7 @@ namespace NinjaGaiDemake
                 keyboardState.IsKeyDown(Keys.OemPeriod);
 
             // ninja check for sword
+            isUsingSword = keyboardState.IsKeyDown(Keys.OemComma);
 
             // ninja Check for special
             isUsingSpecial =
@@ -411,6 +432,9 @@ namespace NinjaGaiDemake
             // Prevent player from jetting up faster than this
             velocity.Y = MathHelper.Clamp(velocity.Y, -MaxJetSpeed, MaxJetSpeed);
 
+            // check enemy collision here? **
+
+
             // Apply velocity
             Position += velocity * elapsed;
             if (isClimbing)
@@ -419,6 +443,11 @@ namespace NinjaGaiDemake
             // If the player is now colliding with the level, separate them
             HandleCollisions();
 
+            // handle recoil
+            if (isRecoiling)
+            {
+
+            }
             // If the collision stopped us from moving, reset velocity to zero
             if (Position.X == previousPosition.X)
                 velocity.X = 0f;
@@ -453,6 +482,7 @@ namespace NinjaGaiDemake
                 {
                     //if (jumpTime == 0.0f)
                     // play jump sound
+
                     // ninja - deactivate wall grabbing state
                     if (canWallJumpLeft || canWallJumpRight)
                     {
@@ -467,6 +497,12 @@ namespace NinjaGaiDemake
 
                         canWallJumpLeft = false;
                         canWallJumpRight = false;
+
+                        // translate over a bit to account for oversized bounding box ( which was made to stop wall penetration) ** not quite working yet?? **
+                        if (canWallJumpLeft)
+                            position.X -= 5f;
+                        if (canWallJumpRight)
+                            position.X += 5f;                        
                     }
 
                     jumpTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -485,11 +521,13 @@ namespace NinjaGaiDemake
                     jumpTime = 0.0f;
                 }
             }
+
             else
             {
                 // Continues not jumping or cancels a jump in progress
                 jumpTime = 0.0f;
             }
+
             wasJumping = isJumping;
 
             return velocityY;
@@ -534,9 +572,10 @@ namespace NinjaGaiDemake
 
             // TEMPORARY Enemy Collision /////////////////////////////////////////////
             for (int i = 0; i < game.screens[game.currentScreen].enemies.Count; i++)
-                if (this.BoundingBox.Intersects(game.screens[game.currentScreen].enemies[i].boundingBox))
+                if (this.BoundingBox.Intersects(game.screens[game.currentScreen].enemies[i].boundingBox) && game.screens[game.currentScreen].enemies[i].isAlive)
                 {
-                    this.IsAlive = false;
+                    this.health -= game.screens[game.currentScreen].enemies[i].attackPower;
+                    this.isRecoiling = true;
                 }
 
             // Powerup Collision
@@ -546,6 +585,8 @@ namespace NinjaGaiDemake
                     this.fuel += 25;
                     game.screens[game.currentScreen].powerups[i].Active = false;
                 }
+
+            
 
         }
 
@@ -640,6 +681,15 @@ namespace NinjaGaiDemake
             this.CollisionBottom.UpdatePosition(new Vector2(this.Position.X + this.thirdOfWidth, this.Position.Y + this.quarterOfHeight * 3f));
             this.CollisionLeft.UpdatePosition(new Vector2(this.Position.X, this.Position.Y + this.quarterOfHeight));
             this.CollisionRight.UpdatePosition(new Vector2(this.Position.X + this.halfOfWidth, this.Position.Y + this.quarterOfHeight));
+        }
+
+        public void UpdateWeapons()
+        {
+            this.sword.Update(new Vector2(this.Position.X + this.Width, this.Position.Y + this.thirdOfHeight ));
+            if (isUsingSword)
+                this.sword.isActive = true;
+            else
+                this.sword.isActive = false;
         }
 
     }

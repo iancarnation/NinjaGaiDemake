@@ -34,6 +34,9 @@ namespace NinjaGaiDemake
         // min and max distance for PATH
         Vector2 min, max;
 
+        public bool isAlive;
+
+        public int attackPower;
 
         public Enemy() { }
         ~Enemy() { }
@@ -45,7 +48,7 @@ namespace NinjaGaiDemake
             position = a_position;
 
             speed = 1.5f;
-            scale = 0.4f;
+            scale = 0.8f;
 
             // Change later if needed //
             width = tex.Width;
@@ -55,6 +58,10 @@ namespace NinjaGaiDemake
 
             dir = Direction.LEFT;
             behaviour = Behaviour.PATH;
+
+            isAlive = true;
+
+            attackPower = 1;
         }
 
         public void SetPath(Vector2 setMin, Vector2 setMax, Vector2 setPos)
@@ -65,9 +72,9 @@ namespace NinjaGaiDemake
                 position = setPos;
         }
 
-        public void Update(float deltaTime)
+        public void Update(NinjaGaiDemake_Game game, float deltaTime)
         {
-            // move enemy
+            // move with player
             position.X += speed * (int)dir;
             // update bounding box
             boundingBox.UpdatePosition(new Vector2(position.X, position.Y));
@@ -78,6 +85,13 @@ namespace NinjaGaiDemake
                 else if (position.X > max.X)
                     dir = Direction.LEFT;
             }
+
+            // Sword Collision
+            if (game.player.isUsingSword)
+                if (this.boundingBox.Intersects(game.player.sword.BoundingBox))
+                {
+                    this.isAlive = false;
+                }
         }
 
         public void Draw(SpriteBatch spriteBatch)

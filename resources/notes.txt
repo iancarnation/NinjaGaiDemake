@@ -1,0 +1,5 @@
+jumping off wall stick problem
+player health / meter
+recoil from being hit
+blinky invulnerability period after recoil jump
+clean up enemy code by caching 'game{screen} bs as partial cleaning before 'screen' paradigm is cleaned out
